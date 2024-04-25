@@ -1,12 +1,9 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import QDesktopWidget, QFileDialog, QApplication, QMainWindow
+from PyQt5.QtWidgets import QFileDialog
 from PyQt5.QtGui import QPixmap, QImage
-from PyQt5.QtCore import QByteArray
 import cv2
 from sql_query import create_connection, select_student_by_studentID
-#from kdtree import recognize_image
 from sface import detect_and_draw_labels_target, recognize_image
-import time
 import pickle
 import os
 from PyQt5.QtWidgets import QMessageBox
@@ -209,45 +206,20 @@ class Check(object):
         self.inputStudentID.clear()
         self.imge_input.clear()
         self.imagePath.setText('Image Path')
+        print(image_url, student_ID)
         with open('data_embeddings.pkl', 'rb') as f:
             dictionary = pickle.load(f)
-        if student_ID:
-            database = r"database.db"
-            conn = create_connection(database)
-            student = select_student_by_studentID(conn, student_ID)
-            
-            # Kiểm tra xem có sinh viên được trả về từ truy vấn không
-            if student:
-                self.stdName.setText(str(student[0][1]))
-                self.stdID.setText(str(student[0][0]))
-                self.stdFaculty.setText(str(student[0][2]))
-                # Tạo QImage từ đường dẫn ảnh
-                image = QImage(str(student[0][5]))
-                
-                # Kiểm tra xem ảnh đã được tạo thành công không
-                if not image.isNull():
-                    # Chuyển đổi QImage sang QPixmap và thiết lập cho QLabel
-                    pixmap = QPixmap.fromImage(image)
-                    self.image_output.setPixmap(pixmap)
-                else:
-                    QMessageBox.warning(None, "Thông báo", "Không thể tải ảnh")
-                    
-            else:
-                QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
-        else:
-            result = recognize_image(image_url, dictionary, face_detector, face_recognizer)
-            #print(result)
-            if result:
+        if image_url != 'Image Path' or student_ID != '':
+            if student_ID:
                 database = r"database.db"
                 conn = create_connection(database)
-                student = select_student_by_studentID(conn, result)
+                student = select_student_by_studentID(conn, student_ID)
                 
                 # Kiểm tra xem có sinh viên được trả về từ truy vấn không
                 if student:
                     self.stdName.setText(str(student[0][1]))
                     self.stdID.setText(str(student[0][0]))
                     self.stdFaculty.setText(str(student[0][2]))
-
                     # Tạo QImage từ đường dẫn ảnh
                     image = QImage(str(student[0][5]))
                     
@@ -258,11 +230,39 @@ class Check(object):
                         self.image_output.setPixmap(pixmap)
                     else:
                         QMessageBox.warning(None, "Thông báo", "Không thể tải ảnh")
+                        
                 else:
                     QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
             else:
-                QMessageBox.warning(None, "Thông báo", "Nhận diện thất bại, không tìm thấy thông tin")
-        
+                result = recognize_image(image_url, dictionary, face_detector, face_recognizer)
+                #print(result)
+                if result:
+                    database = r"database.db"
+                    conn = create_connection(database)
+                    student = select_student_by_studentID(conn, result)
+                    
+                    # Kiểm tra xem có sinh viên được trả về từ truy vấn không
+                    if student:
+                        self.stdName.setText(str(student[0][1]))
+                        self.stdID.setText(str(student[0][0]))
+                        self.stdFaculty.setText(str(student[0][2]))
+
+                        # Tạo QImage từ đường dẫn ảnh
+                        image = QImage(str(student[0][5]))
+                        
+                        # Kiểm tra xem ảnh đã được tạo thành công không
+                        if not image.isNull():
+                            # Chuyển đổi QImage sang QPixmap và thiết lập cho QLabel
+                            pixmap = QPixmap.fromImage(image)
+                            self.image_output.setPixmap(pixmap)
+                        else:
+                            QMessageBox.warning(None, "Thông báo", "Không thể tải ảnh")
+                    else:
+                        QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
+                else:
+                    QMessageBox.warning(None, "Thông báo", "Nhận diện thất bại, không tìm thấy thông tin")
+        else:
+            QMessageBox.warning(None, "Thông báo", "Vui lòng nhập thông tin hoặc tải lên hình ảnh")
 
     def linkto(self):
         link = QFileDialog.getOpenFileName(filter='*.jpg *.png')
