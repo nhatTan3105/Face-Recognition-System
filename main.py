@@ -6,9 +6,9 @@ import pickle
 import os 
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QFont
-from sface import detect_and_draw_labels
-from sql_query import create_connection, select_student_by_studentID
-from sface import detect_and_draw_labels_target, recognize_image
+from sface import *
+import shutil
+
 
 
 class LoadingScreen(QtWidgets.QWidget):
@@ -245,7 +245,10 @@ class CCTV(object):
         if(self.inputURL_1.text() != ''):
             if not self.stream1_active:
                 url = self.inputURL_1.text()
-                self.cap1 = cv2.VideoCapture(url)
+                if self.inputURL_1.text() == '0':
+                    self.cap1 = cv2.VideoCapture(0)
+                else:
+                    self.cap1 = cv2.VideoCapture(url)
                 self.btnStart_1.setText("Stop")
                 self.btnStart_1.setStyleSheet("background-color: #f36666;")
                 self.stream1_active = True
@@ -576,7 +579,6 @@ class Check(object):
         self.inputStudentID.clear()
         self.imge_input.clear()
         self.imagePath.setText('Image Path')
-        print(image_url, student_ID)
         with open('data_embeddings.pkl', 'rb') as f:
             dictionary = pickle.load(f)
         if student_ID:
@@ -604,7 +606,6 @@ class Check(object):
                 QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
         elif self.imge_input.pixmap():
             result = recognize_image(image_url, dictionary, face_detector, face_recognizer)
-            #print(result)
             if result:
                 database = r"database.db"
                 conn = create_connection(database)
