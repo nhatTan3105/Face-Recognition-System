@@ -51,11 +51,6 @@ def convert_image_to_blob(file_path):
         blob_data = file.read()
     return blob_data
 
-# def main():
-#     print('sql_query loaded')
-
-# if __name__ == '__main__':
-#     main()
 
 def match(recognizer, feature1, dictionary):
     max_score = 0.0
@@ -233,29 +228,29 @@ def recognize_image(image_url, dictionary, face_detector, face_recognizer):
         return user[1][0]
 
 
-if __name__ == '__main__':
-    directory = 'data'
-    with open('data_embeddings.pkl', 'rb') as f:
-        dictionary = pickle.load(f)
-    # Init models face detection & recognition
-    weights = os.path.join(directory, "models",
-                           "face_detection_yunet_2022mar.onnx")
-    face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
-    face_detector.setScoreThreshold(0.87)
+# if __name__ == '__main__':
+#     directory = 'data'
+#     with open('data_embeddings.pkl', 'rb') as f:
+#         dictionary = pickle.load(f)
+#     # Init models face detection & recognition
+#     weights = os.path.join(directory, "models",
+#                            "face_detection_yunet_2022mar.onnx")
+#     face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+#     face_detector.setScoreThreshold(0.87)
 
-    weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
-    face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
-    train(directory)
-    #img = recognize_image('D:\Download\\b.jpg', dictionary, face_detector, face_recognizer)
-    # capture = cv2.VideoCapture(0)
-    # if not capture.isOpened():
-    #     sys.exit()
-    # with open('data_embeddings.pkl', 'rb') as f:
-    #         dictionary = pickle.load(f)
-    # while True:
-    #     result, image = capture.read()
-    #     if result is False:
-    #         cv2.waitKey(0)
-    #         break
-    #     image = detect_and_draw_labels(dictionary, image, face_detector, face_recognizer)
-    #     cv2.imshow("face recognition", image)
+#     weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+#     face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+#     train(directory)
+#     #img = recognize_image('D:\Download\\b.jpg', dictionary, face_detector, face_recognizer)
+#     # capture = cv2.VideoCapture(0)
+#     # if not capture.isOpened():
+#     #     sys.exit()
+#     # with open('data_embeddings.pkl', 'rb') as f:
+#     #         dictionary = pickle.load(f)
+#     # while True:
+#     #     result, image = capture.read()
+#     #     if result is False:
+#     #         cv2.waitKey(0)
+#     #         break
+#     #     image = detect_and_draw_labels(dictionary, image, face_detector, face_recognizer)
+#     #     cv2.imshow("face recognition", image)
