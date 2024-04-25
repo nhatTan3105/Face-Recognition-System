@@ -230,7 +230,7 @@ class CCTV(object):
         else:
             QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
     def stream1(self):
-        count = 29
+        count = 0
         database = r"database.db"
         conn = create_connection(database)
         directory = 'data'
@@ -250,8 +250,9 @@ class CCTV(object):
             ret, frame = self.cap1.read()      
             if ret:
                     frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
-                    count+=1
-                    if name is not None and count%30==0:
+                    
+                    if name is not None and count==0:
+                        count+=1
                         data = select_student_by_studentID(conn, name)
                         for data in data:
                             self.add_data_to_table_1([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
@@ -267,7 +268,7 @@ class CCTV(object):
                 break
 
     def stream2(self):
-        count = 29
+        count = 0
         database = r"database.db"
         conn = create_connection(database)
         directory = 'data'
@@ -287,8 +288,9 @@ class CCTV(object):
             ret, frame = self.cap2.read()      
             if ret:
                     frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
-                    count+=1
-                    if name is not None and count%30==0:
+                    
+                    if name is not None and count==0:
+                        count+=1
                         data = select_student_by_studentID(conn, name)
                         for data in data:
                             self.add_data_to_table_2([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])

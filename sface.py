@@ -198,6 +198,7 @@ if __name__ == '__main__':
 
     weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
     face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+    train(directory)
     #img = recognize_image('D:\Download\\b.jpg', dictionary, face_detector, face_recognizer)
     # capture = cv2.VideoCapture(0)
     # if not capture.isOpened():

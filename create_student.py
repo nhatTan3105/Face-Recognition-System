@@ -227,8 +227,14 @@ class Create(object):
             # Đường dẫn của hình ảnh bạn muốn chèn
             image_path = self.lineEdit_5.text()
             
+            # Tách đường dẫn và tên tệp tin
+            directory, filename = os.path.split(image_path)
+
+            # Tạo đường dẫn mới cho tệp tin resized
+            resized_filename = os.path.splitext(filename)[0] + '_resize.jpg'
+            resized_image_path = os.path.join(directory, resized_filename)
             # Chuyển đổi hình ảnh thành dữ liệu blob
-            image_blob = convert_image_to_blob(image_path)
+            image_blob = convert_image_to_blob(resized_image_path)
             image_url = self.lineEdit_5.text()
             
             # Thông tin sinh viên
