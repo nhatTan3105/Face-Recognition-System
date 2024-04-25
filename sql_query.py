@@ -43,24 +43,7 @@ def convert_image_to_blob(file_path):
     return blob_data
 
 def main():
-    # create a database connection
-    # database = r"database.db"
-    # conn = create_connection(database)
-    # # Đường dẫn của hình ảnh bạn muốn chèn
-    # image_path = 'images\\52000028\\tien1_resize.jpg'
-    
-    # # Chuyển đổi hình ảnh thành dữ liệu blob
-    # image_blob = convert_image_to_blob(image_path)
-    # image_url = 'images\\52000028\\tien1.jpg'
-    
-    # # Thông tin sinh viên
-    # student_data = (52000028, 'Thuy Tien', 'Computer Science', 2024, image_blob, image_url)
-    
-    # # Chèn thông tin sinh viên vào cơ sở dữ liệu
-    # insert_student(conn, student_data)
     print('sql_query loaded')
-
-
 
 if __name__ == '__main__':
     main()

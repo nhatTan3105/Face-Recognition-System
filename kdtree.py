@@ -256,25 +256,25 @@ if __name__ == "__main__":
     #pretrain
     #pretrain = pretrain_model(model_path=model_save_path, new_data_dir=newtrain_dir, leaf_size=leaf_size, verbose=verbose)
     
-    # process_this_frame = 29
-    # print('Setting cameras up...')
+    process_this_frame = 29
+    print('Setting cameras up...')
     # # multiple cameras can be used with the format url = 'http://username:password@camera_ip:port'
-    # url = 'http://nhattan:nhattan@192.168.1.8:4747/video'
-    # cap = cv2.VideoCapture(url)
+    url = 'http://nhattan:nhattan@192.168.1.8:4747/video'
+    cap = cv2.VideoCapture(url)
 
-    # while True:
-    #     ret, frame = cap.read()
-    #     if ret:
-    #         # Different resizing options can be chosen based on desired program runtime.
-    #         # Image resizing for more stable streaming
-    #         img = cv2.resize(frame, (0, 0), fx=1, fy=1)
-    #         process_this_frame += 1
-    #         if process_this_frame % 30 == 0:
-    #             predictions = predict(img, model_path="trained_model.pkl")
-    #         frame = show_prediction_labels_on_image(frame, predictions)
-    #         cv2.imshow('camera', frame)
-    #         if cv2.waitKey(10) & 0xFF == ord('q'):
-    #             break
+    while True:
+        ret, frame = cap.read()
+        if ret:
+            # Different resizing options can be chosen based on desired program runtime.
+            # Image resizing for more stable streaming
+            img = cv2.resize(frame, (0, 0), fx=1, fy=1)
+            process_this_frame += 1
+            if process_this_frame % 30 == 0:
+                predictions = predict(img, model_path="trained_model.pkl")
+            frame = show_prediction_labels_on_image(frame, predictions)
+            cv2.imshow('camera', frame)
+            if cv2.waitKey(10) & 0xFF == ord('q'):
+                break
 
     # #Target
     # while True:

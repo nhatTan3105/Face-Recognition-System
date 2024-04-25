@@ -2,10 +2,11 @@ import cv2
 import sys
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
-from kdtree import predict, show_prediction_labels_on_image
 from sql_query import create_connection, select_student_by_studentID
 import datetime
-
+from sface import detect_and_draw_labels
+import pickle
+import os 
 
 class VideoLabel(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -224,27 +225,32 @@ class CCTV(object):
             self.stream2_active = False
 
     def stream1(self):
-       
         count = 29
-
-        # create a database connection
         database = r"database.db"
         conn = create_connection(database)
+        directory = 'data'
+        # Init models face detection & recognition
+        weights = os.path.join(directory, "models",
+                            "face_detection_yunet_2022mar.onnx")
+        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+        face_detector.setScoreThreshold(0.87)
 
+        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+        # create a database connection
+        
+        with open('data_embeddings.pkl', 'rb') as f:
+            dictionary = pickle.load(f)
         while self.stream1_active:
             ret, frame = self.cap1.read()      
             if ret:
-                count+=1
-                if count % 30 == 0:
-                    img = cv2.resize(frame, (0, 0), fx=0.75, fy=0.75)
-                    predictions = predict(img, model_path="trained_model.pkl")
-                    if predictions != []:
-                        for name in predictions:
-                            data = select_student_by_studentID(conn, name[0])
+                    frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
+                    count+=1
+                    if name is not None and count%30==0:
+                        data = select_student_by_studentID(conn, name)
+                        for data in data:
+                            self.add_data_to_table_1([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
                             
-                            for data in data:
-                                self.add_data_to_table_1([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
-                    frame = show_prediction_labels_on_image(frame, predictions)
                     rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     h, w, ch = rgb_image.shape
                     bytes_per_line = ch * w
@@ -252,40 +258,36 @@ class CCTV(object):
                     pixmap = QtGui.QPixmap.fromImage(q_img)
                     self.scrollAreaWidgetContents.setPixmap(pixmap)
                     QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                   
-                   
-                else:
-                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    h, w, ch = rgb_image.shape
-                    bytes_per_line = ch * w
-                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-                    pixmap = QtGui.QPixmap.fromImage(q_img)
-                    self.scrollAreaWidgetContents.setPixmap(pixmap)
-                    QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                   
             else:
                 break
 
     def stream2(self):
-
         count = 29
-         # create a database connection
         database = r"database.db"
         conn = create_connection(database)
+        directory = 'data'
+        # Init models face detection & recognition
+        weights = os.path.join(directory, "models",
+                            "face_detection_yunet_2022mar.onnx")
+        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+        face_detector.setScoreThreshold(0.87)
+
+        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+        # create a database connection
+        
+        with open('data_embeddings.pkl', 'rb') as f:
+            dictionary = pickle.load(f)
         while self.stream2_active:
             ret, frame = self.cap2.read()      
             if ret:
-                count+=1
-                if count % 30 == 0:
-                    img = cv2.resize(frame, (0, 0), fx=0.75, fy=0.75)
-                    predictions = predict(img, model_path="trained_model.pkl")
-                    if predictions != []:
-                        for name in predictions:
-                            data = select_student_by_studentID(conn, name[0])
+                    frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
+                    count+=1
+                    if name is not None and count%30==0:
+                        data = select_student_by_studentID(conn, name)
+                        for data in data:
+                            self.add_data_to_table_2([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
                             
-                            for data in data:
-                                self.add_data_to_table_2([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
-                    frame = show_prediction_labels_on_image(frame, predictions)
                     rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     h, w, ch = rgb_image.shape
                     bytes_per_line = ch * w
@@ -293,16 +295,6 @@ class CCTV(object):
                     pixmap = QtGui.QPixmap.fromImage(q_img)
                     self.scrollAreaWidgetContents_2.setPixmap(pixmap)
                     QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                    
-                else:
-                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    h, w, ch = rgb_image.shape
-                    bytes_per_line = ch * w
-                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-                    pixmap = QtGui.QPixmap.fromImage(q_img)
-                    self.scrollAreaWidgetContents_2.setPixmap(pixmap)
-                    QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                   
             else:
                 break
     # cctv.py

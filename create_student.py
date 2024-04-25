@@ -15,6 +15,8 @@ import cv2
 from PyQt5.QtWidgets import QScrollBar
 import os
 from PyQt5.QtWidgets import QMessageBox
+from sface import pretrain
+import shutil
 
 class VideoLabel(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -171,12 +173,15 @@ class Create(object):
 
                 # Kiểm tra xem thư mục có tên là MSSV đã tồn tại trong thư mục images chưa, nếu chưa thì tạo mới
                 student_folder = os.path.join("images", mssv)
+                data_folder = os.path.join("data", "images")
                 if not os.path.exists(student_folder):
                     os.makedirs(student_folder)
 
                 # Lưu ảnh đã capture vào thư mục có tên là MSSV
                 image_path = os.path.join(student_folder, str(self.lineEdit_2.text())+'.jpg')
                 cv2.imwrite(image_path, frame)
+                image_data_path = os.path.join(data_folder, str(self.lineEdit.text())+'.jpg')
+                cv2.imwrite(image_data_path, frame) 
                 # Resize ảnh và lưu ảnh đã resize
                 resized_image = cv2.resize(frame, (70, 70))  # Resize ảnh thành kích thước 70x81
                 image_path_resize = os.path.join(student_folder, str(self.lineEdit_2.text()) + '_resize.jpg')
@@ -196,7 +201,6 @@ class Create(object):
         self.start_active = False
 
     def stream1(self):
-        count = 29
         while self.start_active:
             ret, frame = self.cap1.read()      
             if ret:
@@ -231,17 +235,21 @@ class Create(object):
            
             # Chèn thông tin sinh viên vào cơ sở dữ liệu
             insert_student(conn, student_data)
-            train_dir = "images/"+str(self.lineEdit.text())
-            model_save_path = "trained_model.pkl"
-            leaf_size = 30  # Optional parameter, default value is 30
-            verbose = True  # Optional parameter, default value is False
-            pretrain_model(model_path=model_save_path, new_data_dir=train_dir, leaf_size=leaf_size, verbose=verbose)
+            # train_dir = "images/"+str(self.lineEdit.text())
+            # model_save_path = "trained_model.pkl"
+            # leaf_size = 30  # Optional parameter, default value is 30
+            # verbose = True  # Optional parameter, default value is False
+            pretrain('data')
+            #pretrain_model(model_path=model_save_path, new_data_dir=train_dir, leaf_size=leaf_size, verbose=verbose)
             self.scrollAreaWidgetContents.clear()
             self.lineEdit.clear()
             self.lineEdit_2.clear()
             self.lineEdit_3.clear()
             self.lineEdit_4.clear()
             self.lineEdit_5.clear()
+            data_folder = os.path.join("data", "images")
+            shutil.rmtree(data_folder)
+            os.makedirs(data_folder)
             QMessageBox.warning(None, "Thông báo", "Thêm thông tin thành công!")
         else:
             # Nếu có một hoặc nhiều lineEdit không có dữ liệu, hiển thị một thông báo cảnh báo

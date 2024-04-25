@@ -3,9 +3,12 @@ from PyQt5.QtWidgets import QDesktopWidget, QFileDialog, QApplication, QMainWind
 from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QByteArray
 import cv2
-from sql_query import create_connection, select_all_students, select_student_by_studentID
-from kdtree import predict_target, show_prediction_labels_on_image, recognize_image, predict
+from sql_query import create_connection, select_student_by_studentID
+from kdtree import recognize_image
+from sface import detect_and_draw_labels_target
 import time
+import pickle
+import os
 
 class VideoLabel(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -216,6 +219,7 @@ class Check(object):
                 print("No student found with ID:", student_ID)
         else:
             result = recognize_image(image_url)
+            print(result)
             if result:
                 database = r"database.db"
                 conn = create_connection(database)
@@ -267,21 +271,24 @@ class Check(object):
             self.stream1_active = False
     
     def stream1(self):
-        count = 29
 
+        directory = 'data'
+        # Init models face detection & recognition
+        weights = os.path.join(directory, "models",
+                            "face_detection_yunet_2022mar.onnx")
+        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+        face_detector.setScoreThreshold(0.87)
+
+        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
         # create a database connection
-        database = r"database.db"
-        conn = create_connection(database)
-
+        
+        with open('data_embeddings.pkl', 'rb') as f:
+            dictionary = pickle.load(f)
         while self.stream1_active:
-            start_time = time.perf_counter()
             ret, frame = self.cap1.read()      
             if ret:
-                count+=1
-                if count % 10 == 0:
-                    img = cv2.resize(frame, (0, 0), fx=0.75, fy=0.75)
-                    predictions = predict_target(img, self.stdID.text(),model_path="trained_model.pkl")
-                    frame = show_prediction_labels_on_image(frame, predictions)
+                    frame = detect_and_draw_labels_target(self.stdID.text(), dictionary, frame, face_detector, face_recognizer)
                     rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     h, w, ch = rgb_image.shape
                     bytes_per_line = ch * w
@@ -289,18 +296,6 @@ class Check(object):
                     pixmap = QtGui.QPixmap.fromImage(q_img)
                     self.scrollAreaWidgetContents.setPixmap(pixmap)
                     QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                    # end_time = time.perf_counter()
-                    # print(f"Thời gian thực thi là: {end_time - start_time} giây")
-                   
-                else:
-                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    h, w, ch = rgb_image.shape
-                    bytes_per_line = ch * w
-                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-                    pixmap = QtGui.QPixmap.fromImage(q_img)
-                    self.scrollAreaWidgetContents.setPixmap(pixmap)
-                    QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                   
             else:
                 break
 
@@ -320,21 +315,24 @@ class Check(object):
             self.stream2_active = False
     
     def stream2(self):
-        count = 29
+        
+        directory = 'data'
+        # Init models face detection & recognition
+        weights = os.path.join(directory, "models",
+                            "face_detection_yunet_2022mar.onnx")
+        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+        face_detector.setScoreThreshold(0.87)
 
+        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
         # create a database connection
-        database = r"database.db"
-        conn = create_connection(database)
-
+        
+        with open('data_embeddings.pkl', 'rb') as f:
+            dictionary = pickle.load(f)
         while self.stream2_active:
-            start_time = time.perf_counter()
             ret, frame = self.cap2.read()      
             if ret:
-                count+=1
-                if count % 10 == 0:
-                    img = cv2.resize(frame, (0, 0), fx=0.75, fy=0.75)
-                    predictions = predict_target(img, self.stdID.text(), model_path="trained_model.pkl")                       
-                    frame = show_prediction_labels_on_image(frame, predictions)
+                    frame = detect_and_draw_labels_target(self.stdID.text(), dictionary, frame, face_detector, face_recognizer)
                     rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     h, w, ch = rgb_image.shape
                     bytes_per_line = ch * w
@@ -342,20 +340,9 @@ class Check(object):
                     pixmap = QtGui.QPixmap.fromImage(q_img)
                     self.scrollAreaWidgetContents_2.setPixmap(pixmap)
                     QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                    # end_time = time.perf_counter()
-                    # print(f"Thời gian thực thi là: {end_time - start_time} giây")
-                   
-                else:
-                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    h, w, ch = rgb_image.shape
-                    bytes_per_line = ch * w
-                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-                    pixmap = QtGui.QPixmap.fromImage(q_img)
-                    self.scrollAreaWidgetContents_2.setPixmap(pixmap)
-                    QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
-                   
             else:
                 break
+
     def back(self, MainWindow):
         import main
         # Tạo một instance của giao diện
@@ -363,6 +350,8 @@ class Check(object):
 
         # Hiển thị giao diện
         self.another_gui_instance.setupUi(MainWindow)
+        self.stream1_active = False
+        self.stream2_active = False
         MainWindow.showMaximized() 
 
 if __name__ == "__main__":
