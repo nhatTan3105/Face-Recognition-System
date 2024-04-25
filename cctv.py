@@ -7,6 +7,7 @@ import datetime
 from sface import detect_and_draw_labels
 import pickle
 import os 
+from PyQt5.QtWidgets import QMessageBox
 
 class VideoLabel(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -18,8 +19,8 @@ class VideoLabel(QtWidgets.QLabel):
 
 class CCTV(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
-        
+        MainWindow.setObjectName("CCTV")
+        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
         # Tính toán kích thước màn hình
         screen = QtWidgets.QApplication.primaryScreen().size()
         width = screen.width()
@@ -129,7 +130,7 @@ class CCTV(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "CCTV"))
         self.btnBack.setText(_translate("MainWindow", "Back"))
         self.txtURL_1.setText(_translate("MainWindow", "Camera IP 1:"))
         self.btnStart_1.setText(_translate("MainWindow", "Start"))
@@ -195,35 +196,39 @@ class CCTV(object):
 
 
     def toggle_stream_1(self):
-        if not self.stream1_active:
-            url = self.inputURL_1.text()
-            self.cap1 = cv2.VideoCapture(url)
-            self.btnStart_1.setText("Stop")
-            self.btnStart_1.setStyleSheet("background-color: #f36666;")
-            self.stream1_active = True
-            self.stream1()
+        if(self.inputURL_1.text() != ''):
+            if not self.stream1_active:
+                url = self.inputURL_1.text()
+                self.cap1 = cv2.VideoCapture(url)
+                self.btnStart_1.setText("Stop")
+                self.btnStart_1.setStyleSheet("background-color: #f36666;")
+                self.stream1_active = True
+                self.stream1()
+            else:
+                self.cap1.release()
+                self.scrollAreaWidgetContents.clear()  # Clear the pixmap
+                self.btnStart_1.setText("Start")
+                self.btnStart_1.setStyleSheet("background-color: #52c9a2;")
+                self.stream1_active = False
         else:
-            self.cap1.release()
-            self.scrollAreaWidgetContents.clear()  # Clear the pixmap
-            self.btnStart_1.setText("Start")
-            self.btnStart_1.setStyleSheet("background-color: #52c9a2;")
-            self.stream1_active = False
-
+            QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
     def toggle_stream_2(self):
-        if not self.stream2_active:
-            url = self.inputURL_2.text()
-            self.cap2 = cv2.VideoCapture(url)
-            self.btnStart_2.setText("Stop")
-            self.btnStart_2.setStyleSheet("background-color: #f36666;")
-            self.stream2_active = True
-            self.stream2()
+        if(self.inputURL_2.text() != ''):
+            if not self.stream2_active:
+                url = self.inputURL_2.text()
+                self.cap2 = cv2.VideoCapture(url)
+                self.btnStart_2.setText("Stop")
+                self.btnStart_2.setStyleSheet("background-color: #f36666;")
+                self.stream2_active = True
+                self.stream2()
+            else:
+                self.cap2.release()
+                self.scrollAreaWidgetContents_2.clear()  # Clear the pixmap
+                self.btnStart_2.setText("Start")
+                self.btnStart_2.setStyleSheet("background-color: #52c9a2;")
+                self.stream2_active = False
         else:
-            self.cap2.release()
-            self.scrollAreaWidgetContents_2.clear()  # Clear the pixmap
-            self.btnStart_2.setText("Start")
-            self.btnStart_2.setStyleSheet("background-color: #52c9a2;")
-            self.stream2_active = False
-
+            QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
     def stream1(self):
         count = 29
         database = r"database.db"
@@ -308,23 +313,26 @@ class CCTV(object):
         self.another_gui_instance.setupUi(MainWindow)
 
     def search(self, s):
-        if not self.search_press:
-            for row in range(self.tableWidget.rowCount()):
-                item = self.tableWidget.item(row, 0)  # Chỉ tìm kiếm ở cột đầu tiên
-                if item:
-                    text = item.text().lower()
-                    if s.lower() in text:
-                        self.tableWidget.setRowHidden(row, False)  # Hiển thị mục nếu chứa chuỗi tìm kiếm
-                    else:
-                        self.tableWidget.setRowHidden(row, True)   # Ẩn mục nếu không chứa chuỗi tìm kiếm
-            self.btnSearch.setText("Reset")
-            self.search_press = True
+        if s != '':
+            if not self.search_press:
+                for row in range(self.tableWidget.rowCount()):
+                    item = self.tableWidget.item(row, 0)  # Chỉ tìm kiếm ở cột đầu tiên
+                    if item:
+                        text = item.text().lower()
+                        if s.lower() in text:
+                            self.tableWidget.setRowHidden(row, False)  # Hiển thị mục nếu chứa chuỗi tìm kiếm
+                        else:
+                            self.tableWidget.setRowHidden(row, True)   # Ẩn mục nếu không chứa chuỗi tìm kiếm
+                self.btnSearch.setText("Reset")
+                self.search_press = True
+            else:
+                self.showAllItems()
+                self.btnSearch.setText("Search")
+                self.inputStudentID.clear()
+                self.search_press = False
+                return
         else:
-            self.showAllItems()
-            self.btnSearch.setText("Search")
-            self.inputStudentID.clear()
-            self.search_press = False
-            return
+            QMessageBox.warning(None, "Thông báo", "Vui lòng điền Student ID")
 
             
     def showAllItems(self):

@@ -179,15 +179,17 @@ def detect_and_draw_labels_target(label, dictionary, image, face_detector, face_
 
 def recognize_image(image_url, dictionary, face_detector, face_recognizer):
     image = cv2.imread(image_url)
-    fetures, faces = recognize_face(image, face_detector, face_recognizer)
-
-    for feature in enumerate(zip(faces, fetures)):
+    features, faces = recognize_face(image, face_detector, face_recognizer)
+    
+    for face, feature in zip(faces, features):
         user = match(face_recognizer, feature, dictionary)
-    return user[0]
+        return user[1][0]
+
 
 if __name__ == '__main__':
     directory = 'data'
-
+    with open('data_embeddings.pkl', 'rb') as f:
+        dictionary = pickle.load(f)
     # Init models face detection & recognition
     weights = os.path.join(directory, "models",
                            "face_detection_yunet_2022mar.onnx")
@@ -196,15 +198,16 @@ if __name__ == '__main__':
 
     weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
     face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
-    capture = cv2.VideoCapture(0)
-    if not capture.isOpened():
-        sys.exit()
-    with open('data_embeddings.pkl', 'rb') as f:
-            dictionary = pickle.load(f)
-    while True:
-        result, image = capture.read()
-        if result is False:
-            cv2.waitKey(0)
-            break
-        image = detect_and_draw_labels(dictionary, image, face_detector, face_recognizer)
-        cv2.imshow("face recognition", image)
+    #img = recognize_image('D:\Download\\b.jpg', dictionary, face_detector, face_recognizer)
+    # capture = cv2.VideoCapture(0)
+    # if not capture.isOpened():
+    #     sys.exit()
+    # with open('data_embeddings.pkl', 'rb') as f:
+    #         dictionary = pickle.load(f)
+    # while True:
+    #     result, image = capture.read()
+    #     if result is False:
+    #         cv2.waitKey(0)
+    #         break
+    #     image = detect_and_draw_labels(dictionary, image, face_detector, face_recognizer)
+    #     cv2.imshow("face recognition", image)

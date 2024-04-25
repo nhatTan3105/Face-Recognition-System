@@ -10,7 +10,7 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 from sql_query import create_connection, select_all_students, select_student_by_studentID, convert_image_to_blob, insert_student
-from kdtree import pretrain_model
+#from kdtree import pretrain_model
 import cv2
 from PyQt5.QtWidgets import QScrollBar
 import os
@@ -29,6 +29,7 @@ class VideoLabel(QtWidgets.QLabel):
 class Create(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
         MainWindow.resize(1200, 800)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -119,7 +120,7 @@ class Create(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Create Student"))
         self.pushButton.setText(_translate("MainWindow", "Back"))
         self.btnStart.setText(_translate("MainWindow", "Start"))
         self.label.setText(_translate("MainWindow", "Student ID"))

@@ -4,11 +4,12 @@ from PyQt5.QtGui import QPixmap, QImage
 from PyQt5.QtCore import QByteArray
 import cv2
 from sql_query import create_connection, select_student_by_studentID
-from kdtree import recognize_image
-from sface import detect_and_draw_labels_target
+#from kdtree import recognize_image
+from sface import detect_and_draw_labels_target, recognize_image
 import time
 import pickle
 import os
+from PyQt5.QtWidgets import QMessageBox
 
 class VideoLabel(QtWidgets.QLabel):
     def __init__(self, parent=None):
@@ -20,7 +21,7 @@ class VideoLabel(QtWidgets.QLabel):
 
 class Check(object):
     def setupUi(self, MainWindow):
-        MainWindow.setObjectName("MainWindow")
+        MainWindow.setObjectName("Check")
         screen = QtWidgets.QApplication.primaryScreen().size()
         width = screen.width()
         height = screen.height()
@@ -177,7 +178,8 @@ class Check(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Check"))
+        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
         self.btnBack.setText(_translate("MainWindow", "Back"))
         self.txtURL_1.setText(_translate("MainWindow", "URL 1:"))
         self.btnStart_1.setText(_translate("MainWindow", "Start"))
@@ -194,7 +196,21 @@ class Check(object):
         self.lbStudentID_4.setText(_translate("MainWindow", "Faculty"))
 
     def recognize_image_check(self, image_url, student_ID):
-        
+        directory = 'data'
+        # Init models face detection & recognition
+        weights = os.path.join(directory, "models",
+                            "face_detection_yunet_2022mar.onnx")
+        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+        face_detector.setScoreThreshold(0.87)
+
+        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+        # create a database connection
+        self.inputStudentID.clear()
+        self.imge_input.clear()
+        self.imagePath.setText('Image Path')
+        with open('data_embeddings.pkl', 'rb') as f:
+            dictionary = pickle.load(f)
         if student_ID:
             database = r"database.db"
             conn = create_connection(database)
@@ -214,12 +230,13 @@ class Check(object):
                     pixmap = QPixmap.fromImage(image)
                     self.image_output.setPixmap(pixmap)
                 else:
-                    print("Could not load image:", image_url)
+                    QMessageBox.warning(None, "Thông báo", "Không thể tải ảnh")
+                    
             else:
-                print("No student found with ID:", student_ID)
+                QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
         else:
-            result = recognize_image(image_url)
-            print(result)
+            result = recognize_image(image_url, dictionary, face_detector, face_recognizer)
+            #print(result)
             if result:
                 database = r"database.db"
                 conn = create_connection(database)
@@ -240,15 +257,12 @@ class Check(object):
                         pixmap = QPixmap.fromImage(image)
                         self.image_output.setPixmap(pixmap)
                     else:
-                        print("Could not load image:", image_url)
+                        QMessageBox.warning(None, "Thông báo", "Không thể tải ảnh")
                 else:
-                    print("No student found with recognized ID:", result)
+                    QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
             else:
-                print("Image recognition failed.")
-
+                QMessageBox.warning(None, "Thông báo", "Nhận diện thất bại, không tìm thấy thông tin")
         
-
-
 
     def linkto(self):
         link = QFileDialog.getOpenFileName(filter='*.jpg *.png')
@@ -256,20 +270,22 @@ class Check(object):
         self.imagePath.setText(link[0])
 
     def toggle_stream_1(self):
-        if not self.stream1_active:
-            url = self.url_1.text()
-            self.cap1 = cv2.VideoCapture(url)
-            self.btnStart_1.setText("Stop")
-            self.stream1_active = True
-            self.btnStart_1.setStyleSheet("background-color: #f36666;")
-            self.stream1()
+        if self.url_1 != '':
+            if not self.stream1_active:
+                url = self.url_1.text()
+                self.cap1 = cv2.VideoCapture(url)
+                self.btnStart_1.setText("Stop")
+                self.stream1_active = True
+                self.btnStart_1.setStyleSheet("background-color: #f36666;")
+                self.stream1()
+            else:
+                self.cap1.release()
+                self.scrollAreaWidgetContents.clear()  # Clear the pixmap
+                self.btnStart_1.setText("Start")
+                self.btnStart_1.setStyleSheet("background-color: #52c9a2;")
+                self.stream1_active = False
         else:
-            self.cap1.release()
-            self.scrollAreaWidgetContents.clear()  # Clear the pixmap
-            self.btnStart_1.setText("Start")
-            self.btnStart_1.setStyleSheet("background-color: #52c9a2;")
-            self.stream1_active = False
-    
+            QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
     def stream1(self):
 
         directory = 'data'
@@ -300,20 +316,22 @@ class Check(object):
                 break
 
     def toggle_stream_2(self):
-        if not self.stream2_active:
-            url = self.url_2.text()
-            self.cap2 = cv2.VideoCapture(url)
-            self.btnStart_2.setText("Stop")
-            self.btnStart_2.setStyleSheet("background-color: #f36666;")
-            self.stream2_active = True
-            self.stream2()
+        if self.url_2 != '':
+            if not self.stream2_active:
+                url = self.url_2.text()
+                self.cap2 = cv2.VideoCapture(url)
+                self.btnStart_2.setText("Stop")
+                self.btnStart_2.setStyleSheet("background-color: #f36666;")
+                self.stream2_active = True
+                self.stream2()
+            else:
+                self.cap2.release()
+                self.scrollAreaWidgetContents_2.clear()  # Clear the pixmap
+                self.btnStart_2.setText("Start")
+                self.btnStart_2.setStyleSheet("background-color: #52c9a2;")
+                self.stream2_active = False
         else:
-            self.cap2.release()
-            self.scrollAreaWidgetContents_2.clear()  # Clear the pixmap
-            self.btnStart_2.setText("Start")
-            self.btnStart_2.setStyleSheet("background-color: #52c9a2;")
-            self.stream2_active = False
-    
+            QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
     def stream2(self):
         
         directory = 'data'

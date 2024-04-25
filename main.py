@@ -8,9 +8,10 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
-
+        
         # Set up full screen size for layout calculations
         screen = QtWidgets.QApplication.primaryScreen().size()
         width = screen.width()
@@ -31,7 +32,8 @@ class Ui_MainWindow(object):
         self.titleLabel.setText("Recognition System")
         self.titleLabel.setAlignment(QtCore.Qt.AlignCenter)
         self.titleLabel.setGeometry(QtCore.QRect(0, (height - button_height) / 2 - 150, width, 80))  # Adjust label size and position
-        self.titleLabel.setFont(QFont("Arial", 50))
+        self.titleLabel.setFont(QFont("Arial", 35))
+
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -82,7 +84,7 @@ class Ui_MainWindow(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Recognition System"))
 def create_main_window():
     app = QtWidgets.QApplication([])
     MainWindow = QtWidgets.QMainWindow()

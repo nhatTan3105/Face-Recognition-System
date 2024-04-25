@@ -11,7 +11,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2
 from sql_query import create_connection, select_all_students, select_student_by_studentID
-from kdtree import predict_target, show_prediction_labels_on_image, recognize_image, predict
+#from kdtree import predict_target, show_prediction_labels_on_image, recognize_image, predict
 import datetime
 from PyQt5.QtGui import QPixmap, QImage
 from sface import detect_and_draw_labels
@@ -28,6 +28,7 @@ class VideoLabel(QtWidgets.QLabel):
 class Attendance(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
+        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
         MainWindow.resize(1920, 1080)
         MainWindow.setAnimated(False)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -131,7 +132,7 @@ class Attendance(object):
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+        MainWindow.setWindowTitle(_translate("MainWindow", "Attendance"))
         self.btnBack.setText(_translate("MainWindow", "Back"))
         self.btnAdd.setText(_translate("MainWindow", "Add Student"))
         self.btnAttendance.setText(_translate("MainWindow", "Start Attendance"))
