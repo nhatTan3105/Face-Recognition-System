@@ -9,8 +9,6 @@ from PyQt5.QtGui import QPixmap, QImage, QFont
 from sface import *
 import shutil
 
-
-
 class LoadingScreen(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
