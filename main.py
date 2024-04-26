@@ -245,8 +245,8 @@ class CCTV(object):
         if(self.inputURL_1.text() != ''):
             if not self.stream1_active:
                 url = self.inputURL_1.text()
-                if self.inputURL_1.text() == '0':
-                    self.cap1 = cv2.VideoCapture(0)
+                if type(self.inputURL_1.text()) is str:
+                    self.cap1 = cv2.VideoCapture(int(self.inputURL_1.text()))
                 else:
                     self.cap1 = cv2.VideoCapture(url)
                 self.btnStart_1.setText("Stop")
@@ -265,7 +265,10 @@ class CCTV(object):
         if(self.inputURL_2.text() != ''):
             if not self.stream2_active:
                 url = self.inputURL_2.text()
-                self.cap2 = cv2.VideoCapture(url)
+                if type(self.inputURL_2.text()) is str:
+                    self.cap2 = cv2.VideoCapture(int(self.inputURL_2.text()))
+                else:
+                    self.cap2 = cv2.VideoCapture(url)
                 self.btnStart_2.setText("Stop")
                 self.btnStart_2.setStyleSheet("background-color: #f36666;")
                 self.stream2_active = True
