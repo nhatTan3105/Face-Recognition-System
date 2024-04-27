@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QFont
 from sface import *
 import shutil
-from PyQt5.QtCore import QThread, pyqtSignal
+
+
 
 class LoadingScreen(QtWidgets.QWidget):
     def __init__(self):
@@ -61,32 +62,6 @@ class VideoLabel(QtWidgets.QLabel):
     def setPixmap(self, pixmap):
         super().setPixmap(pixmap)
         self.setScaledContents(True)
-
-class StreamThread(QThread):
-    updatePixmap = pyqtSignal(QtGui.QPixmap)
-
-    def __init__(self, url, parent=None):
-        super(StreamThread, self).__init__(parent)
-        self.url = url
-        self.active = True
-
-    def run(self):
-        cap = cv2.VideoCapture(self.url)
-        while self.active:
-            ret, frame = cap.read()
-            if ret:
-                rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgb_image.shape
-                bytes_per_line = ch * w
-                q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-                pixmap = QtGui.QPixmap.fromImage(q_img)
-                self.updatePixmap.emit(pixmap)
-            else:
-                break
-        cap.release()
-
-    def stop(self):
-        self.active = False
 
 class CCTV(object):
     def setupUi(self, MainWindow):
@@ -198,8 +173,6 @@ class CCTV(object):
         self.stream1_active = False
         self.stream2_active = False
         self.search_press = False
-        self.called_add_data_to_table_1 = False
-        self.called_add_data_to_table_2 = False
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -269,45 +242,47 @@ class CCTV(object):
 
 
     def toggle_stream_1(self):
-        database = r"database.db"
-        conn = create_connection(database)
-        directory = 'data'
-        # Init models face detection & recognition
-        weights = os.path.join(directory, "models",
-                            "face_detection_yunet_2022mar.onnx")
-        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
-        face_detector.setScoreThreshold(0.87)
-
-        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
-        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
-        # create a database connection
-        
-        with open('data_embeddings.pkl', 'rb') as f:
-            dictionary = pickle.load(f)
-        if self.inputURL_1.text() != '':
+        if(self.inputURL_1.text() != ''):
             if not self.stream1_active:
                 url = self.inputURL_1.text()
-                if type(self.inputURL_1.text()) is str and len(self.inputURL_1.text()) == 1:
-                    self.stream1_thread = StreamThread(int(self.inputURL_1.text()))
+                if type(self.inputURL_1.text()) is str:
+                    self.cap1 = cv2.VideoCapture(int(self.inputURL_1.text()))
                 else:
-                    self.stream1_thread = StreamThread(url)
-                self.stream1_thread.updatePixmap.connect(lambda pixmap: self.update_stream_1(pixmap, dictionary, face_detector, face_recognizer, conn))
-                self.stream1_thread.start()
+                    self.cap1 = cv2.VideoCapture(url)
                 self.btnStart_1.setText("Stop")
                 self.btnStart_1.setStyleSheet("background-color: #f36666;")
                 self.stream1_active = True
+                self.stream1()
             else:
-                self.stream1_thread.stop()
-                self.stream1_thread.quit()
-                self.stream1_thread.wait()
-                self.scrollAreaWidgetContents.clear()
+                self.cap1.release()
+                self.scrollAreaWidgetContents.clear()  # Clear the pixmap
                 self.btnStart_1.setText("Start")
                 self.btnStart_1.setStyleSheet("background-color: #52c9a2;")
                 self.stream1_active = False
         else:
             QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
-
     def toggle_stream_2(self):
+        if(self.inputURL_2.text() != ''):
+            if not self.stream2_active:
+                url = self.inputURL_2.text()
+                if type(self.inputURL_2.text()) is str:
+                    self.cap2 = cv2.VideoCapture(int(self.inputURL_2.text()))
+                else:
+                    self.cap2 = cv2.VideoCapture(url)
+                self.btnStart_2.setText("Stop")
+                self.btnStart_2.setStyleSheet("background-color: #f36666;")
+                self.stream2_active = True
+                self.stream2()
+            else:
+                self.cap2.release()
+                self.scrollAreaWidgetContents_2.clear()  # Clear the pixmap
+                self.btnStart_2.setText("Start")
+                self.btnStart_2.setStyleSheet("background-color: #52c9a2;")
+                self.stream2_active = False
+        else:
+            QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
+    def stream1(self):
+        count = 0
         database = r"database.db"
         conn = create_connection(database)
         directory = 'data'
@@ -323,71 +298,64 @@ class CCTV(object):
         
         with open('data_embeddings.pkl', 'rb') as f:
             dictionary = pickle.load(f)
-        if self.inputURL_2.text() != '':
-            if not self.stream2_active:
-                url = self.inputURL_2.text()
-                if type(self.inputURL_2.text()) is str and len(self.inputURL_2.text()) == 1:
-                    self.stream2_thread = StreamThread(int(self.inputURL_2.text()))
-                else:
-                    self.stream2_thread = StreamThread(url)
-                self.stream2_thread.updatePixmap.connect(lambda pixmap: self.update_stream_2(pixmap, dictionary, face_detector, face_recognizer, conn))
-                self.stream2_thread.start()
-                self.btnStart_2.setText("Stop")
-                self.btnStart_2.setStyleSheet("background-color: #f36666;")
-                self.stream2_active = True
+        while self.stream1_active:
+            ret, frame = self.cap1.read()      
+            if ret:
+                    frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
+                    
+                    if name is not None and count==0:
+                        count+=1
+                        data = select_student_by_studentID(conn, name)
+                        for data in data:
+                            self.add_data_to_table_1([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
+                            
+                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    h, w, ch = rgb_image.shape
+                    bytes_per_line = ch * w
+                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+                    pixmap = QtGui.QPixmap.fromImage(q_img)
+                    self.scrollAreaWidgetContents.setPixmap(pixmap)
+                    QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
             else:
-                self.stream2_thread.stop()
-                self.stream2_thread.quit()
-                self.stream2_thread.wait()
-                self.scrollAreaWidgetContents_2.clear()
-                self.btnStart_2.setText("Start")
-                self.btnStart_2.setStyleSheet("background-color: #52c9a2;")
-                self.stream2_active = False
-        else:
-            QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
+                break
 
-    def update_stream_1(self, pixmap, dictionary, face_detector, face_recognizer, conn):
-        rgb_image = pixmap.toImage()
-        width, height = rgb_image.width(), rgb_image.height()
-        ptr = rgb_image.constBits()
-        ptr.setsize(rgb_image.byteCount())
-        arr = np.array(ptr).reshape(height, width, 4)  # RGBA format
+    def stream2(self):
+        count = 0
+        database = r"database.db"
+        conn = create_connection(database)
+        directory = 'data'
+        # Init models face detection & recognition
+        weights = os.path.join(directory, "models",
+                            "face_detection_yunet_2022mar.onnx")
+        face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
+        face_detector.setScoreThreshold(0.87)
 
-        frame = cv2.cvtColor(arr, cv2.COLOR_RGBA2BGR)
-
-        frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
-
-        if name is not None and self.called_add_data_to_table_1 == False:
-            data = select_student_by_studentID(conn, name)
-            for data in data:
-                self.add_data_to_table_1([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
-                self.called_add_data_to_table_1 = True
-        q_img = QtGui.QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QtGui.QImage.Format_RGB888)
-        pixmap = QtGui.QPixmap.fromImage(q_img)
-
-        self.scrollAreaWidgetContents.setPixmap(pixmap)
-       
-    def update_stream_2(self, pixmap, dictionary, face_detector, face_recognizer, conn):
-        rgb_image = pixmap.toImage()
-        width, height = rgb_image.width(), rgb_image.height()
-        ptr = rgb_image.constBits()
-        ptr.setsize(rgb_image.byteCount())
-        arr = np.array(ptr).reshape(height, width, 4)  # RGBA format
-
-        frame = cv2.cvtColor(arr, cv2.COLOR_RGBA2BGR)
-
-        frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
-
-        if name is not None and self.called_add_data_to_table_2 == False:
-            data = select_student_by_studentID(conn, name)
-            for data in data:
-                self.add_data_to_table_2([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
-                self.called_add_data_to_table_2 = True
-        q_img = QtGui.QImage(frame.data, frame.shape[1], frame.shape[0], frame.strides[0], QtGui.QImage.Format_RGB888)
-        pixmap = QtGui.QPixmap.fromImage(q_img)
-
-        self.scrollAreaWidgetContents_2.setPixmap(pixmap)
-
+        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+        # create a database connection
+        
+        with open('data_embeddings.pkl', 'rb') as f:
+            dictionary = pickle.load(f)
+        while self.stream2_active:
+            ret, frame = self.cap2.read()      
+            if ret:
+                    frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
+                    
+                    if name is not None and count==0:
+                        count+=1
+                        data = select_student_by_studentID(conn, name)
+                        for data in data:
+                            self.add_data_to_table_2([data[0].__str__(), data[1].__str__(), data[4], datetime.datetime.now().__str__()])
+                            
+                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                    h, w, ch = rgb_image.shape
+                    bytes_per_line = ch * w
+                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+                    pixmap = QtGui.QPixmap.fromImage(q_img)
+                    self.scrollAreaWidgetContents_2.setPixmap(pixmap)
+                    QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng
+            else:
+                break
     # cctv.py
     def back(self, MainWindow):
         # Tạo một instance của giao diện
