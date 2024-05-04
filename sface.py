@@ -207,7 +207,7 @@ def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
     for idx, (face, feature) in enumerate(zip(faces, fetures)):
         result, user = match(face_recognizer, feature, dictionary)
         box = list(map(int, face[:4]))
-        color = (0, 255, 0) if result else (0, 0, 255)
+        color = (0, 255, 0) if result else (255, 0, 0)
         thickness = 2
         cv2.rectangle(image, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), color, thickness, cv2.LINE_AA)
 

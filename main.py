@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QFont
 from sface import *
 import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer, QObject
+from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 
 class LoadingScreen(QtWidgets.QWidget):
     def __init__(self):
@@ -54,6 +54,7 @@ class VideoLabel(QtWidgets.QLabel):
     def setPixmap(self, pixmap):
         super().setPixmap(pixmap)
         self.setScaledContents(True)
+
 class StreamThread(QThread):
     updatePixmap = pyqtSignal(QtGui.QPixmap)
 
@@ -1330,6 +1331,7 @@ def create_main_window():
     ui.setupUi(MainWindow)
     MainWindow.showMaximized()
     return app, MainWindow, ui
+
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
