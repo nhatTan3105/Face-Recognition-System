@@ -4,6 +4,7 @@ import sys
 import datetime
 import pickle
 import os 
+import pandas as pd
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from PyQt5.QtGui import QPixmap, QImage, QFont
 from sface import *
@@ -184,6 +185,13 @@ class CCTV(object):
         self.tableWidget.setColumnCount(5)
         self.tableWidget.setHorizontalHeaderLabels(['MSSV', 'Name', 'Image', 'DateTime', 'Localtion'])
         self.verticalLayout_2.addWidget(self.tableWidget)
+        self.btnExport = QtWidgets.QPushButton(self.widget)
+        self.btnExport.setObjectName("btnExport")
+        self.btnExport.setStyleSheet("background-color: #85c9e8;")
+        self.btnExport.setText('Export Data')
+        self.btnExport.setFixedSize(100, 30)
+        self.btnExport.clicked.connect(self.export_to_excel)
+        self.verticalLayout_2.addWidget(self.btnExport)
         self.horizontalLayout_4.addLayout(self.verticalLayout_2)
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -213,7 +221,40 @@ class CCTV(object):
         self.txtStdID.setText(_translate("MainWindow", "Student ID:"))
         self.btnSearch.setText(_translate("MainWindow", "Search"))
 
-    
+    def export_to_excel(self):
+        # Number of rows and columns in the table
+        row_count = self.tableWidget.rowCount()
+        column_count = self.tableWidget.columnCount()
+
+        # Create a list to hold data
+        data = []
+
+        # Iterate over rows and columns to extract data
+        for row in range(row_count):
+            row_data = []
+            for column in range(column_count):
+                item = self.tableWidget.item(row, column)
+                if item is not None:
+                    row_data.append(item.text())
+                else:
+                    # Handle the case where the cell might be empty or have a widget like an image
+                    cell_widget = self.tableWidget.cellWidget(row, column)
+                    if isinstance(cell_widget, QtWidgets.QLabel) and cell_widget.pixmap():
+                        row_data.append('Image')
+                    else:
+                        row_data.append('')
+            data.append(row_data)
+
+        # Create a DataFrame
+        df = pd.DataFrame(data, columns=[self.tableWidget.horizontalHeaderItem(i).text() for i in range(column_count)])
+
+        # Specify the path and name of the Excel file
+        file_path = QFileDialog.getSaveFileName(None, "Save File", "", "Excel files (*.xlsx)")[0]
+        if file_path:
+            # Write the DataFrame to an Excel file
+            df.to_excel(file_path, index=False)
+            QMessageBox.information(None, "Export Successful", "Data has been exported successfully to " + file_path)
+
     def add_data_to_table_1(self, data):
         row_position = self.tableWidget.rowCount()
         self.tableWidget.insertRow(row_position)
