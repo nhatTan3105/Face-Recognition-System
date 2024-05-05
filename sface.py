@@ -7,9 +7,9 @@ from tqdm import tqdm
 import pickle
 from scipy.spatial import KDTree
 COSINE_THRESHOLD = 0.5
-
 import sqlite3
 
+#SQL Queries
 def create_connection(db_file):
     conn = None
     try:
@@ -28,7 +28,6 @@ def select_all_students(conn):
 
     return rows
 
-
 def select_student_by_studentID(conn, studentID):
 
     cur = conn.cursor()
@@ -46,13 +45,11 @@ def insert_student(conn, student):
     
     return cur.lastrowid
 
-
+#Detect & Recognize
 def convert_image_to_blob(file_path):
     with open(file_path, 'rb') as file:
         blob_data = file.read()
     return blob_data
-
-
 
 def match(recognizer, feature1, dictionary):
     max_score = 0.0
@@ -142,7 +139,6 @@ def train(directory):
     with open('data_embeddings.pkl', 'wb') as f:
         pickle.dump(dictionary, f)
 
-
 def pretrain(directory):
     # Init models face detection & recognition
     weights = os.path.join(directory, "models",
@@ -199,7 +195,6 @@ def detect_and_draw_labels_old(dictionary, image, face_detector, face_recognizer
 
     return image, None
 
-  
 def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
     fetures, faces = recognize_face(image, face_detector, face_recognizer)
     detected_users = []
@@ -250,7 +245,7 @@ def recognize_image(image_url, dictionary, face_detector, face_recognizer):
         user = match(face_recognizer, feature, dictionary)
         return user[1][0]
 
-
+#Main
 if __name__ == '__main__':
     directory = 'data'
     train(directory)
