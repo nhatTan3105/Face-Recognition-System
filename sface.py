@@ -5,10 +5,11 @@ import cv2
 import numpy as np
 from tqdm import tqdm
 import pickle
+from scipy.spatial import KDTree
 COSINE_THRESHOLD = 0.5
-
 import sqlite3
 
+#SQL Queries
 def create_connection(db_file):
     conn = None
     try:
@@ -27,7 +28,6 @@ def select_all_students(conn):
 
     return rows
 
-
 def select_student_by_studentID(conn, studentID):
 
     cur = conn.cursor()
@@ -45,12 +45,11 @@ def insert_student(conn, student):
     
     return cur.lastrowid
 
-
+#Detect & Recognize
 def convert_image_to_blob(file_path):
     with open(file_path, 'rb') as file:
         blob_data = file.read()
     return blob_data
-
 
 def match(recognizer, feature1, dictionary):
     max_score = 0.0
@@ -79,7 +78,7 @@ def recognize_face(image, face_detector, face_recognizer, file_name=None):
     height, width, _ = image.shape
     face_detector.setInputSize((width, height))
     try:
-        dts = time.time()
+        #dts = time.time()
         _, faces = face_detector.detect(image)
         if file_name is not None:
             assert len(faces) > 0, f'the file {file_name} has no face'
@@ -88,7 +87,7 @@ def recognize_face(image, face_detector, face_recognizer, file_name=None):
         features = []
         #print(f'time detection  = {time.time() - dts}')
         for face in faces:
-            rts = time.time()
+            #rts = time.time()
 
             aligned_face = face_recognizer.alignCrop(image, face)
             feat = face_recognizer.feature(aligned_face)
@@ -123,7 +122,6 @@ def train(directory):
         files.extend(glob.glob(os.path.join(directory, 'images', a_type)))
 
     files = list(set(files))
-    print(files)
     for file in tqdm(files):
 
         image = cv2.imread(file)
@@ -140,7 +138,6 @@ def train(directory):
     # Lưu dữ liệu embeddings vào file
     with open('data_embeddings.pkl', 'wb') as f:
         pickle.dump(dictionary, f)
-
 
 def pretrain(directory):
     # Init models face detection & recognition
@@ -176,7 +173,7 @@ def pretrain(directory):
     with open('data_embeddings.pkl', 'wb') as f:
         pickle.dump(dictionary, f)
 
-def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
+def detect_and_draw_labels_old(dictionary, image, face_detector, face_recognizer):
     
     fetures, faces = recognize_face(image, face_detector, face_recognizer)
 
@@ -198,6 +195,27 @@ def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
 
     return image, None
 
+def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
+    fetures, faces = recognize_face(image, face_detector, face_recognizer)
+    detected_users = []
+
+    for idx, (face, feature) in enumerate(zip(faces, fetures)):
+        result, user = match(face_recognizer, feature, dictionary)
+        box = list(map(int, face[:4]))
+        color = (0, 255, 0) if result else (255, 0, 0)
+        thickness = 2
+        cv2.rectangle(image, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), color, thickness, cv2.LINE_AA)
+
+        id_name, score = user if result else (f"unknown_{idx}", 0.0)
+        text = "{0} ({1:.2f})".format(id_name, score)
+        position = (box[0], box[1] - 10)
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        scale = 0.6
+        cv2.putText(image, text, position, font, scale, color, thickness, cv2.LINE_AA)
+        detected_users.append(user[0] if result else None)
+
+    return image, detected_users
+
 def detect_and_draw_labels_target(label, dictionary, image, face_detector, face_recognizer):
     
     fetures, faces = recognize_face(image, face_detector, face_recognizer)
@@ -206,7 +224,7 @@ def detect_and_draw_labels_target(label, dictionary, image, face_detector, face_
         result, user = match(face_recognizer, feature, dictionary)
         if label == user[0]:
             box = list(map(int, face[:4]))
-            color = (0, 255, 0) if result else (0, 0, 255)
+            color = (0, 255, 0) if result else (255, 0, 0)
             thickness = 2
             cv2.rectangle(image, box, color, thickness, cv2.LINE_AA)
 
@@ -227,30 +245,7 @@ def recognize_image(image_url, dictionary, face_detector, face_recognizer):
         user = match(face_recognizer, feature, dictionary)
         return user[1][0]
 
-
-# if __name__ == '__main__':
-#     directory = 'data'
-#     with open('data_embeddings.pkl', 'rb') as f:
-#         dictionary = pickle.load(f)
-#     # Init models face detection & recognition
-#     weights = os.path.join(directory, "models",
-#                            "face_detection_yunet_2022mar.onnx")
-#     face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
-#     face_detector.setScoreThreshold(0.87)
-
-#     weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
-#     face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
-#     train(directory)
-#     #img = recognize_image('D:\Download\\b.jpg', dictionary, face_detector, face_recognizer)
-#     # capture = cv2.VideoCapture(0)
-#     # if not capture.isOpened():
-#     #     sys.exit()
-#     # with open('data_embeddings.pkl', 'rb') as f:
-#     #         dictionary = pickle.load(f)
-#     # while True:
-#     #     result, image = capture.read()
-#     #     if result is False:
-#     #         cv2.waitKey(0)
-#     #         break
-#     #     image = detect_and_draw_labels(dictionary, image, face_detector, face_recognizer)
-#     #     cv2.imshow("face recognition", image)
+#Main
+if __name__ == '__main__':
+    directory = 'data'
+    train(directory)
