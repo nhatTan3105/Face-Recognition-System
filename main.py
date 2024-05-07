@@ -431,7 +431,6 @@ class CCTV(object):
                 for n in name:
                     if n not in processed_names_camera_2:
                         data = select_student_by_studentID(conn, n)
-                        print(n)
                         for d in data:
                             self.add_data_to_table_2([d[0].__str__(), d[1].__str__(), d[4], datetime.datetime.now().__str__()])
                             processed_names_camera_2.add(n)  # Thêm giá trị đã được xử lý vào tập hợp
@@ -1065,27 +1064,35 @@ class Attendance(object):
 
         weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
         face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
-        
+        attendance_data = []
+        processed_students = set()
         with open('data_embeddings.pkl', 'rb') as f:
             dictionary = pickle.load(f)
         while self.attendace_active:
             ret, frame = self.cap1.read()      
             if ret:
+                    frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                     frame, name = detect_and_draw_labels(dictionary, frame, face_detector, face_recognizer)
                     if name is not None:
                         for name in name:
-                            result = select_student_by_studentID(conn, name)
-                            if result != []:
-                                self.studentImage.setPixmap(QPixmap((result[0][5])))
-                                self.studentName.setText(str(result[0][1]))
-                                self.studentID.setText(str(result[0][0]))
-                                self.studentFaculty.setText(str(result[0][2]))
-                                self.timeAttendance.setText(datetime.datetime.now().__str__())
-                            
-                    rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                    h, w, ch = rgb_image.shape
+                            if name not in processed_students:
+                                result = select_student_by_studentID(conn, name)
+                                if result != []:
+                                    self.studentImage.setPixmap(QPixmap((result[0][5])))
+                                    self.studentName.setText(str(result[0][1]))
+                                    self.studentID.setText(str(result[0][0]))
+                                    self.studentFaculty.setText(str(result[0][2]))
+                                    self.timeAttendance.setText(datetime.datetime.now().__str__())
+                                    
+                                    attendance_data.append([result[0][0], result[0][1], datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")])
+                                    processed_students.add(name)
+                                    # Convert list to DataFrame
+                                    df = pd.DataFrame(attendance_data, columns=['Student ID', 'Name', 'DateTime'])
+                                    # Save DataFrame to Excel
+                                    df.to_excel('attendance_records.xlsx', index=False)
+                    h, w, ch = frame.shape
                     bytes_per_line = ch * w
-                    q_img = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
+                    q_img = QtGui.QImage(frame.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
                     pixmap = QtGui.QPixmap.fromImage(q_img)
                     self.scrollAreaWidgetContents.setPixmap(pixmap)
                     QtWidgets.QApplication.processEvents()  # Để đảm bảo cập nhật giao diện người dùng

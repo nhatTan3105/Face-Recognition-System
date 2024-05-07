@@ -224,7 +224,7 @@ def detect_and_draw_labels_target(label, dictionary, image, face_detector, face_
         result, user = match(face_recognizer, feature, dictionary)
         if label == user[0]:
             box = list(map(int, face[:4]))
-            color = (0, 255, 0) if result else (0, 0, 255)
+            color = (0, 255, 0) if result else (255, 0, 0)
             thickness = 2
             cv2.rectangle(image, box, color, thickness, cv2.LINE_AA)
 
