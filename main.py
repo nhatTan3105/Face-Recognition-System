@@ -736,6 +736,7 @@ class Check(object):
 
         weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
         face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+       
         # create a database connection
         with open('data_embeddings.pkl', 'rb') as f:
             dictionary = pickle.load(f)
@@ -762,6 +763,8 @@ class Check(object):
         else:
             QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
 
+    # def load_model(directory):
+        
     def toggle_stream_2(self):
         directory = 'data'
         # Init models face detection & recognition
@@ -772,6 +775,7 @@ class Check(object):
 
         weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
         face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+        
         # create a database connection
         
         with open('data_embeddings.pkl', 'rb') as f:
@@ -1062,8 +1066,13 @@ class Attendance(object):
         face_detector = cv2.FaceDetectorYN_create(weights, "", (0, 0))
         face_detector.setScoreThreshold(0.87)
 
-        weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
-        face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+        try:
+            weights = os.path.join(directory, "models", "face_recognizer_fast.onnx")
+            face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
+            print("Model loaded successfully.")
+           
+        except cv2.error as e:
+            print(f"OpenCV error while loading model: {e}")
         attendance_data = []
         processed_students = set()
         with open('data_embeddings.pkl', 'rb') as f:

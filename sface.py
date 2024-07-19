@@ -119,8 +119,8 @@ def train(directory):
     types = ('*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG', '*.JPEG')
     files = []
     for a_type in types:
-        files.extend(glob.glob(os.path.join(directory, 'images', a_type)))
-
+        files.extend(glob.glob(os.path.join(directory, 'images_defautl', a_type)))
+       
     files = list(set(files))
     for file in tqdm(files):
 
@@ -195,8 +195,36 @@ def detect_and_draw_labels_old(dictionary, image, face_detector, face_recognizer
 
     return image, None
 
+# def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
+#     fetures, faces = recognize_face(image, face_detector, face_recognizer)
+#     detected_users = []
+
+#     for idx, (face, feature) in enumerate(zip(faces, fetures)):
+#         result, user = match(face_recognizer, feature, dictionary)
+#         box = list(map(int, face[:4]))
+#         color = (0, 255, 0) if result else (255, 0, 0)
+#         thickness = 2
+#         cv2.rectangle(image, (box[0], box[1]), (box[0]+box[2], box[1]+box[3]), color, thickness, cv2.LINE_AA)
+
+#         id_name, score = user if result else (f"unknown_{idx}", 0.0)
+#         text = "{0} ({1:.2f})".format(id_name, score)
+#         position = (box[0], box[1] - 10)
+#         font = cv2.FONT_HERSHEY_SIMPLEX
+#         scale = 0.6
+#         cv2.putText(image, text, position, font, scale, color, thickness, cv2.LINE_AA)
+#         detected_users.append(user[0] if result else None)
+
+#     return image, detected_users
+
+
 def detect_and_draw_labels(dictionary, image, face_detector, face_recognizer):
     fetures, faces = recognize_face(image, face_detector, face_recognizer)
+    
+    # Check if fetures and faces are not None
+    if fetures is None or faces is None:
+        #print("Error: recognize_face did not return valid outputs.")
+        return image, []
+
     detected_users = []
 
     for idx, (face, feature) in enumerate(zip(faces, fetures)):
