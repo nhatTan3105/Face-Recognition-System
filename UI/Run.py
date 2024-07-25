@@ -1,15 +1,7 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-import cv2
+from PyQt5 import QtWidgets
 import sys
-import datetime
-import pickle
-import os 
-import pandas as pd
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QFont
 from sface import *
-import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
+
 
 from LoadingScreen import LoadingScreen
 from Ui_MainWindow import Ui_MainWindow

@@ -1,21 +1,18 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2
-import sys
 import datetime
 import pickle
 import os 
 import pandas as pd
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QFont
+from PyQt5.QtGui import QPixmap
 from sface import *
-import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 
 
 class Attendance(object):
     def setupUi(self, MainWindow):
+        from common import VideoLabel
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
+        MainWindow.setWindowIcon(QtGui.QIcon('../icons/logo.png'))
         MainWindow.resize(1920, 1080)
         MainWindow.setAnimated(False)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
@@ -36,7 +33,7 @@ class Attendance(object):
         self.btnAdd = QtWidgets.QPushButton(self.layoutWidget)
         self.btnAdd.setObjectName("btnAdd")
         self.btnAdd.setFixedSize(100, 30)
-        self.btnAdd.clicked.connect(lambda: self.create_student(MainWindow))
+        self.btnAdd.clicked.connect(lambda: self.database(MainWindow))
         self.btnAdd.setStyleSheet("background-color: #85c9e8;")
         self.verticalLayout.addWidget(self.btnBack)
         self.verticalLayout.addWidget(self.btnAdd)
@@ -195,28 +192,25 @@ class Attendance(object):
             else:
                 break
     def back(self, MainWindow):
+        from common import Ui_MainWindow
         # Tạo một instance của giao diện
         self.another_gui_instance = Ui_MainWindow()
 
         # Hiển thị giao diện
         self.another_gui_instance.setupUi(MainWindow)
         self.attendace_active = False
-        MainWindow.showMaximized()       
-    def create_student(self, MainWindow):
+        MainWindow.showMaximized()   
+    
+    def database(self, MainWindow):
+        from common import Database
         # Tạo một instance của giao diện
-        self.another_gui_instance = Create()
+        self.another_gui_instance = Database()
         self.attendace_active = False
         # Hiển thị giao diện
         self.another_gui_instance.setupUi(MainWindow)
-        
-        # Lấy kích thước của màn hình
-        screen_geometry = QtWidgets.QApplication.primaryScreen().geometry()
+        screen = QtWidgets.QApplication.primaryScreen().size()
+        width = screen.width()
+        height = screen.height()
+        MainWindow.resize(width, height)
 
-        # Lấy kích thước của cửa sổ chính
-        main_window_geometry = MainWindow.frameGeometry()
 
-        # Di chuyển cửa sổ chính vào giữa màn hình
-        x = (screen_geometry.width() - main_window_geometry.width()) / 2
-        y = (screen_geometry.height() - main_window_geometry.height()) / 2
-        MainWindow.move(x, y)
-        MainWindow.show()       

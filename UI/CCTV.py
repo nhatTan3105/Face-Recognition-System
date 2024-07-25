@@ -1,22 +1,21 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2
-import sys
 import datetime
 import pickle
 import os 
 import pandas as pd
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QFont
 from sface import *
-import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
+
 
 
 
 class CCTV(object):
     def setupUi(self, MainWindow):
+        
+        from VideoLabel import VideoLabel
         MainWindow.setObjectName("CCTV")
-        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
+        MainWindow.setWindowIcon(QtGui.QIcon('../icons/logo.png'))
         # Tính toán kích thước màn hình
         screen = QtWidgets.QApplication.primaryScreen().size()
         width = screen.width()
@@ -234,6 +233,7 @@ class CCTV(object):
 
 
     def toggle_stream_1(self):
+        from StreamThread import StreamThread
         database = r"database.db"
         conn = create_connection(database)
         directory = 'data'
@@ -272,6 +272,7 @@ class CCTV(object):
             QMessageBox.warning(None, "Thông báo", "Vui lòng điền IP của Camera")
 
     def toggle_stream_2(self):
+        from StreamThread import StreamThread
         database = r"database.db"
         conn = create_connection(database)
         directory = 'data'
@@ -363,6 +364,7 @@ class CCTV(object):
             self.scrollAreaWidgetContents_2.setPixmap(pixmap)
 
     def back(self, MainWindow):
+        from common import Ui_MainWindow
         self.another_gui_instance = Ui_MainWindow()
         self.stream1_active = False
         self.stream2_active = False
