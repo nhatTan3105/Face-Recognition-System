@@ -1,21 +1,19 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2
-import sys
-import datetime
 import pickle
 import os 
-import pandas as pd
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QFont
+from PyQt5.QtGui import QPixmap, QImage
 from sface import *
-import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 
 
 
 class Check(object):
+
     def setupUi(self, MainWindow):
+        from VideoLabel import VideoLabel
         MainWindow.setObjectName("Check")
+        MainWindow.setWindowIcon(QtGui.QIcon('../icons/logo.png'))
         screen = QtWidgets.QApplication.primaryScreen().size()
         width = screen.width()
         height = screen.height()
@@ -268,6 +266,7 @@ class Check(object):
  
     
     def toggle_stream_1(self):
+        from StreamThread import StreamThread
         directory = 'data'
         # Init models face detection & recognition
         weights = os.path.join(directory, "models",
@@ -307,6 +306,7 @@ class Check(object):
     # def load_model(directory):
         
     def toggle_stream_2(self):
+        from StreamThread import StreamThread
         directory = 'data'
         # Init models face detection & recognition
         weights = os.path.join(directory, "models",
@@ -374,6 +374,7 @@ class Check(object):
             self.scrollAreaWidgetContents_2.setPixmap(pixmap)
 
     def back(self, MainWindow):
+        from common import Ui_MainWindow
         # Tạo một instance của giao diện
         self.another_gui_instance = Ui_MainWindow()
 

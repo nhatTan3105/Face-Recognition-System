@@ -1,11 +1,8 @@
 import os
 import glob
-import time
 import cv2
-import numpy as np
 from tqdm import tqdm
 import pickle
-from scipy.spatial import KDTree
 COSINE_THRESHOLD = 0.5
 import sqlite3
 
@@ -18,6 +15,33 @@ def create_connection(db_file):
     except Error as e:
         print(e)
     return conn
+def delete_student(conn, student_id):
+    """Xóa một sinh viên dựa trên ID."""
+    try:
+        sql = 'DELETE FROM Students WHERE ID = ?'
+        cur = conn.cursor()
+        cur.execute(sql, (student_id,))
+        conn.commit()
+        print(f'Student with ID {student_id} deleted.')
+    except sqlite3.Error as e:
+        print(f"Error deleting student: {e}")
+
+def update_student(conn, student_id, name, faculty, year, image_url):
+    """Cập nhật thông tin của sinh viên dựa trên ID."""
+    try:
+        sql = '''UPDATE Students
+                 SET StudentName = ?,
+                     Faculty = ?,
+                     Year = ?,
+                     ImageURL = ?
+                 WHERE ID = ?'''
+        cur = conn.cursor()
+        cur.execute(sql, (name, faculty, year, image_url, student_id))
+        conn.commit()
+        print(f'Student with ID {student_id} updated.')
+    except sqlite3.Error as e:
+        print(f"Error updating student: {e}")
+
 
 def select_all_students(conn):
 

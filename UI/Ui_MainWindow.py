@@ -1,15 +1,6 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
-import cv2
-import sys
-import datetime
-import pickle
-import os 
-import pandas as pd
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QFont
+from PyQt5.QtGui import QFont
 from sface import *
-import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 
 
 
@@ -19,7 +10,7 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
+        MainWindow.setWindowIcon(QtGui.QIcon('../icons/logo.png'))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         
@@ -34,9 +25,9 @@ class Ui_MainWindow(object):
         spacing = (width - 3 * button_width) / 4  # Calculate spacing to evenly distribute buttons
 
         # Tạo ba nút với hình ảnh và nhãn văn bản
-        self.createButton(MainWindow, "icons/cctv.png", spacing, (height - button_height) / 2, button_width, button_height, "CCTV", "cctvButton")
-        self.createButton(MainWindow, "icons/check.png", 2 * spacing + button_width, (height - button_height) / 2, button_width, button_height, "Check", "cameraButton")
-        self.createButton(MainWindow, "icons/attendance.png", 3 * spacing + 2 * button_width, (height - button_height) / 2, button_width, button_height, "Attendance", "securityButton")
+        self.createButton(MainWindow, "../icons/cctv.png", spacing, (height - button_height) / 2, button_width, button_height, "CCTV", "cctvButton")
+        self.createButton(MainWindow, "../icons/check.png", 2 * spacing + button_width, (height - button_height) / 2, button_width, button_height, "Check", "cameraButton")
+        self.createButton(MainWindow, "../icons/attendance.png", 3 * spacing + 2 * button_width, (height - button_height) / 2, button_width, button_height, "Attendance", "securityButton")
 
         self.titleLabel = QtWidgets.QLabel(self.centralwidget)
         self.titleLabel.setObjectName("titleLabel")
@@ -80,13 +71,14 @@ class Ui_MainWindow(object):
     def openGui(self, labelText, MainWindow):
 
         if(labelText == 'CCTV'):
-            
+            from common import CCTV
             ui = CCTV()
-           
          
         elif(labelText == 'Check'):
+            from common import Check
             ui = Check()
         else:
+            from common import Attendance
             ui = Attendance()
 
         ui.setupUi(MainWindow)

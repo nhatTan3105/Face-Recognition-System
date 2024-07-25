@@ -1,21 +1,17 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 import cv2
-import sys
-import datetime
-import pickle
 import os 
-import pandas as pd
-from PyQt5.QtWidgets import QMessageBox, QFileDialog
-from PyQt5.QtGui import QPixmap, QImage, QFont
+from PyQt5.QtWidgets import QMessageBox
 from sface import *
 import shutil
-from PyQt5.QtCore import QThread, pyqtSignal, QTimer
 
 
 class Create(object):
     def setupUi(self, MainWindow):
+        
+        from common import VideoLabel
         MainWindow.setObjectName("MainWindow")
-        MainWindow.setWindowIcon(QtGui.QIcon('icons/logo.png'))
+        MainWindow.setWindowIcon(QtGui.QIcon('../icons/logo.png'))
         MainWindow.resize(1200, 800)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -250,8 +246,9 @@ class Create(object):
 
 
     def back(self, MainWindow):
+        from common import Database
         # Tạo một instance của giao diện
-        self.another_gui_instance = Attendance()
+        self.another_gui_instance = Database()
 
         # Hiển thị giao diện
         self.another_gui_instance.setupUi(MainWindow)
