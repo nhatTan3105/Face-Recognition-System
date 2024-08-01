@@ -6,7 +6,7 @@ import os
 import pandas as pd
 from PyQt5.QtWidgets import QMessageBox, QFileDialog
 from sface import *
-
+from PyQt5.QtWidgets import QHeaderView
 
 
 
@@ -106,6 +106,10 @@ class CCTV(object):
         self.tableWidget.setRowCount(0)
         self.tableWidget.setColumnCount(5)
         self.tableWidget.setHorizontalHeaderLabels(['MSSV', 'Name', 'Image', 'DateTime', 'Localtion'])
+        # Đặt chế độ co giãn cho tất cả các cột để vừa với kích thước của table widget
+        header = self.tableWidget.horizontalHeader()
+        for i in range(5):  # Cột từ 0 đến 4
+            header.setSectionResizeMode(i, QHeaderView.Stretch)
         self.verticalLayout_2.addWidget(self.tableWidget)
         self.btnExport = QtWidgets.QPushButton(self.widget)
         self.btnExport.setObjectName("btnExport")

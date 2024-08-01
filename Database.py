@@ -1,7 +1,7 @@
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtWidgets import QMessageBox
 from sface import *
-
+from PyQt5.QtWidgets import QHeaderView
 
 class Database(object):
     def setupUi(self, MainWindow):
@@ -125,6 +125,14 @@ class Database(object):
         self.tableWidget.setRowCount(0)
         self.tableWidget.setColumnCount(6)
         self.tableWidget.setHorizontalHeaderLabels(['ID', 'Student Name', 'Faculty', 'Year', 'Image', 'Image URL'])
+        # Đặt kích thước cho các cột
+         
+        # Đặt chế độ co giãn cho tất cả các cột để vừa với kích thước của table widget
+        header = self.tableWidget.horizontalHeader()
+        for i in range(5):  # Cột từ 0 đến 4
+            header.setSectionResizeMode(i, QHeaderView.Stretch)
+        # Cột Image URL gấp đôi kích thước các cột khác
+        header.setSectionResizeMode(5, QHeaderView.ResizeToContents)
         self.tableWidget.itemClicked.connect(self.on_item_clicked)
         self.verticalLayout_2.addWidget(self.tableWidget)
         self.btnCreateStudent = QtWidgets.QPushButton(self.widget)
