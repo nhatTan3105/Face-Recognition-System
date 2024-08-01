@@ -199,8 +199,9 @@ class Check(object):
         face_recognizer = cv2.FaceRecognizerSF_create(weights, "")
         # create a database connection
         self.inputStudentID.clear()
-        self.imge_input.clear()
+        
         self.imagePath.setText('Image Path')
+
         with open('data_embeddings.pkl', 'rb') as f:
             dictionary = pickle.load(f)
         if student_ID:
@@ -227,6 +228,7 @@ class Check(object):
             else:
                 QMessageBox.warning(None, "Thông báo", "Không tìm thấy sinh viên: " + student_ID)
         elif self.imge_input.pixmap():
+           
             result = recognize_image(image_url, dictionary, face_detector, face_recognizer)
             if result:
                 database = r"database.db"
@@ -241,12 +243,13 @@ class Check(object):
 
                     # Tạo QImage từ đường dẫn ảnh
                     image = QImage(str(student[0][5]))
-                    
+                    self.imge_input.clear()
                     # Kiểm tra xem ảnh đã được tạo thành công không
                     if not image.isNull():
                         # Chuyển đổi QImage sang QPixmap và thiết lập cho QLabel
                         pixmap = QPixmap.fromImage(image)
                         self.image_output.setPixmap(pixmap)
+                        self.imge_input.clear()
                     else:
                         QMessageBox.warning(None, "Thông báo", "Không thể tải ảnh")
                 else:
@@ -258,12 +261,9 @@ class Check(object):
 
     def linkto(self):
         link = QFileDialog.getOpenFileName(filter='*.jpg *.png')
-        if self.imge_input.setPixmap(QPixmap(link[0])):
-            #self.imge_input.setPixmap(QPixmap(link[0]))
-            self.imagePath.setText(link[0])
-        else:
-            self.imagePath.setText('Image Path')
- 
+        self.imge_input.setPixmap(QPixmap(link[0]))
+        self.imagePath.setText(link[0])
+
     
     def toggle_stream_1(self):
         from StreamThread import StreamThread
