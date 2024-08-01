@@ -18,6 +18,28 @@ def create_connection(db_file):
     except Error as e:
         print(e)
     return conn
+
+
+def remove_student_from_embeddings(student_id):
+    embeddings_file = 'data_embeddings.pkl'
+    if os.path.exists(embeddings_file):
+        with open(embeddings_file, 'rb') as f:
+            embeddings = pickle.load(f)
+        
+        # Assuming embeddings is a dict with student IDs as keys
+        if student_id in embeddings:
+            del embeddings[student_id]
+            print(f'Student with ID {student_id} removed from embeddings.')
+        else:
+            print(f'Student with ID {student_id} not found in embeddings.')
+
+        # Save the updated embeddings
+        with open(embeddings_file, 'wb') as f:
+            pickle.dump(embeddings, f)
+    else:
+        print(f'{embeddings_file} does not exist.')
+
+
 def delete_student(conn, student_id):
     """Xóa một sinh viên dựa trên ID."""
     try:
@@ -26,6 +48,8 @@ def delete_student(conn, student_id):
         cur.execute(sql, (student_id,))
         conn.commit()
         print(f'Student with ID {student_id} deleted.')
+        # Remove the student from the embeddings
+        remove_student_from_embeddings(student_id)
     except sqlite3.Error as e:
         print(f"Error deleting student: {e}")
 
@@ -77,7 +101,7 @@ def convert_image_to_blob(file_path):
     with open(file_path, 'rb') as file:
         blob_data = file.read()
     return blob_data
-
+#old
 def match(recognizer, feature1, dictionary):
     max_score = 0.0
     sim_user_id = ""
@@ -146,7 +170,7 @@ def train(directory):
     types = ('*.jpg', '*.png', '*.jpeg', '*.JPG', '*.PNG', '*.JPEG')
     files = []
     for a_type in types:
-        files.extend(glob.glob(os.path.join(directory, 'images_defautl', a_type)))
+        files.extend(glob.glob(os.path.join(directory, 'images', a_type)))
        
     files = list(set(files))
     for file in tqdm(files):

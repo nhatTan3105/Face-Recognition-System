@@ -84,7 +84,7 @@ class Database(object):
         self.btnDelete.setStyleSheet("background-color: #ff6666;")
         self.btnDelete.setText('Delete')
         self.btnDelete.setFixedSize(100, 30)
-        self.btnDelete.clicked.connect(lambda: self.handle_delete)
+        self.btnDelete.clicked.connect(self.handle_delete)
         self.horizontalLayout_buttons.addWidget(self.btnDelete)
         self.btnUpdate = QtWidgets.QPushButton(self.widget)
         self.btnUpdate.setObjectName("btnUpdate")
@@ -188,6 +188,11 @@ class Database(object):
             delete_student(conn, student_id)
             conn.close()
             self.load_data()  # Reload data after delete
+            self.studentName.clear()
+            self.studentID.clear()
+            self.studentFaculty.clear()
+            self.studentYear.clear()
+            self.studentImage.clear()
         else:
             print("No student ID provided for deletion.")
 
