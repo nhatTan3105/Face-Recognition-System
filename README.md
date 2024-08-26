@@ -38,26 +38,26 @@ Ensure you have Python 3.8.0 installed. The required libraries are listed in `re
 ### Steps
 
 1. Clone the repository:
-    \`\`\`bash
+    ```bash
     git clone https://github.com/nhatTan3105/Face-Recognition-System.git
     cd Face-Recognition-System
-    \`\`\`
+    ```
 
 2. Create a virtual environment:
-    \`\`\`bash
+    ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
-    \`\`\`
+    ```
 
 3. Install the dependencies:
-    \`\`\`bash
+    ```bash
     pip install -r requirements.txt
-    \`\`\`
+    ```
 
 4. Run the application:
-    \`\`\`bash
+    ```bash
     python main.py
-    \`\`\`
+    ```
 
 ## Usage
 
@@ -70,7 +70,7 @@ Ensure you have Python 3.8.0 installed. The required libraries are listed in `re
 
 ## Project Structure
 
-\`\`\`
+```
 Face-Recognition-System/
 │
 ├── main.py                   # Entry point for the application
@@ -83,7 +83,7 @@ Face-Recognition-System/
 ├── requirements.txt          # Python dependencies
 ├── README.md                 # Project documentation
 └── ...
-\`\`\`
+```
 
 ## Technologies Used
 
